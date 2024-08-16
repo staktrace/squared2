@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<style>
+#puzzle div {
+    height: 50px;
+}
+#puzzle span {
+    display: inline-block;
+    border: 1px solid black;
+    min-width: 50px;
+    min-height: 50px;
+}
+span.selected {
+    background-color: green;
+}
+span.square {
+    border-color: red !important;
+}
+</style>
+
+<div id="puzzle">
+</div>
+<button onclick="generate()">Do stuff</button>
+
+<script>
+
+const ROWS = 10;
+const COLS = 15;
+const RANGE_MIN = -50;
+const RANGE_MAX = 50;
+const SQUARE_MIN = -10;
+const SQUARE_MAX = 10;
+const DISALLOWED = ["-1^2", "0", "0^2", "1^2"];
+
+var puzzle = document.getElementById('puzzle');
+for (var r = 0; r < ROWS; r++) {
+    var row = document.createElement('div');
+    for (var c = 0; c < COLS; c++) {
+        var cell = document.createElement('span');
+        cell.id = `${r},${c}`;
+        cell.textContent = ' ';
+        cell.addEventListener('mousedown', cellSelect, false);
+        cell.addEventListener('mousemove', cellSelect, false);
+        row.appendChild(cell);
+    }
+    puzzle.appendChild(row);
+    document.addEventListener('mouseup', clearFlipState, true);
+}
+
+var lastFlipped = null;
+function cellSelect(e) {
+    if (e.buttons == 0) {
+        return;
+    }
+    if (e.target == lastFlipped) {
+        return;
+    }
+    lastFlipped = e.target;
+    e.target.classList.toggle('selected');
+    return false;
+}
+
+function clearFlipState(e) {
+    lastFlipped = null;
+}
+
+function generate() {
+    assignSquares();
+    assignNumbers();
+}
+
+function assignSquares() {
+    // Find horizontal strips of selected cells and assign a square to each
+    for (var r = 0; r < ROWS; r++) {
+        var start = -1;
+        for (var c = 0; c < COLS; c++) {
+            var cell = document.getElementById(`${r},${c}`);
+            var selected = cell.classList.contains('selected');
+            if (selected) {
+                if (start == -1) {
+                    start = c;
+                }
+            } else if (start != -1) {
+                assignSquare(r, start, c);
+                start = -1;
+            }
+        }
+        if (start != -1) {
+            assignSquare(r, start, COLS);
+        }
+    }
+    // Find vertical strips of selected cells and assign a square to each if it doesn't already have one
+    for (var c = 0; c < COLS; c++) {
+        var start = -1;
+        for (var r = 0; r < ROWS; r++) {
+            var cell = document.getElementById(`${r},${c}`);
+            var selected = cell.classList.contains('selected');
+            if (selected) {
+                if (start == -1) {
+                    start = r;
+                }
+            } else if (start != -1) {
+                assignSquareToCol(c, start, r);
+                start = -1;
+            }
+        }
+        if (start != -1) {
+            assignSquareToCol(c, start, ROWS);
+        }
+    }
+}
+
+function assignSquare(row, start, end) {
+    var len = end - start;
+    if (len == 1) {
+        return;
+    }
+    var assigned = Math.floor(Math.random() * len);
+    var col = start + assigned;
+    document.getElementById(`${row},${col}`).classList.add('square');
+}
+
+function assignSquareToCol(col, start, end) {
+    var hasSquare = false;
+    for (var r = start; r < end; r++) {
+        if (document.getElementById(`${r},${col}`).classList.contains('square')) {
+            hasSquare = true;
+        }
+    }
+    if (hasSquare) {
+        return;
+    }
+    var len = end - start;
+    if (len == 1) {
+        return;
+    }
+    var assigned = Math.floor(Math.random() * len);
+    var row = start + assigned;
+    document.getElementById(`${row},${col}`).classList.add('square');
+}
+
+function assignNumbers() {
+    var numbersUsed = Array();
+    for (var r = 0; r < ROWS; r++) {
+        for (var c = 0; c < COLS; c++) {
+            var cell = document.getElementById(`${r},${c}`);
+            if (!cell.classList.contains('selected')) {
+                continue;
+            }
+            var chosen;
+            do {
+                if (cell.classList.contains('square')) {
+                    var numberToBeSquared = SQUARE_MIN + Math.floor(Math.random() * (SQUARE_MAX - SQUARE_MIN + 1));
+                    chosen = `${chosen}^2`;
+                } else {
+                    chosen = RANGE_MIN + Math.floor(Math.random() * (RANGE_MAX - RANGE_MIN + 1));
+                }
+            } while (DISALLOWED.indexOf(chosen) >= 0 || numbersUsed.indexOf(chosen) >= 0);
+            cell.textContent = chosen;
+            numbersUsed.push(chosen);
+        }
+    }
+}
+
+</script>
