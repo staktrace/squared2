@@ -20,7 +20,7 @@ span.square {
 <div id="puzzle">
 </div>
 <input type="number" id="sum" value="5" style="width: 3em"/>.
-<input type="number" id="intersections" value="2" style="width: 3em"/>
+<input type="number" id="crossings" value="2" style="width: 3em"/>
 <button onclick="generateAndRender()">Generate puzzle</button>
 
 <script>
@@ -35,8 +35,8 @@ const SQUARE_MAX = 10;
 const DISALLOWED = new Set(["-1*1", 0, "0", "0*0", "1*1"]);
 
 var sticks = new Array();
-var pivots = new Array();
-pivots.push(null);
+var intersections = new Array();
+intersections.push(null);
 
 function generateAndRender() {
     var gen = generatePuzzle();
@@ -71,8 +71,7 @@ function render() {
 
 function* generatePuzzle() {
     var sum = Number(document.getElementById('sum').value);
-    var intersections = Number(document.getElementById('intersections').value);
-    var stickCount = intersections + 1;
+    var stickCount = 1 + Number(document.getElementById('crossings').value);
 
     while (sticks.length < stickCount) {
         yield* generateStick(sum);
