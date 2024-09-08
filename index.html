@@ -34,10 +34,13 @@ const SQUARE_MIN = -10;
 const SQUARE_MAX = 10;
 const DISALLOWED = new Set(["-1*1", 0, "0", "0*0", "1*1"]);
 
-var sticks = new Array();
-var intersections = new Set();
+var sticks;
+var intersections;
 
 function generateAndRender() {
+    sticks = new Array();
+    intersections = new Set();
+
     var gen = generatePuzzle();
     function nextStep() {
         var result = gen.next();
