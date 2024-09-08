@@ -9,7 +9,7 @@
     min-width: 50px;
     min-height: 50px;
 }
-span.selected {
+span.pivot {
     background-color: green;
 }
 span.square {
@@ -19,8 +19,8 @@ span.square {
 
 <div id="puzzle">
 </div>
-<input type="number" id="sum" value="5" style="width: 3em"/>.
-<input type="number" id="crossings" value="2" style="width: 3em"/>
+<input type="number" id="sum" value="21" style="width: 3em"/>.
+<input type="number" id="crossings" value="3" style="width: 3em"/>
 <button onclick="generateAndRender()">Generate puzzle</button>
 
 <script>
@@ -35,8 +35,7 @@ const SQUARE_MAX = 10;
 const DISALLOWED = new Set(["-1*1", 0, "0", "0*0", "1*1"]);
 
 var sticks = new Array();
-var intersections = new Array();
-intersections.push(null);
+var intersections = new Set();
 
 function generateAndRender() {
     var gen = generatePuzzle();
@@ -64,6 +63,9 @@ function render() {
             var entryElement = document.createElement('span');
             entryElement.textContent = "" + entry;
             stickElement.appendChild(entryElement);
+            if (intersections.has(entry)) {
+                entryElement.classList.add('pivot');
+            }
         }
         puzzle.appendChild(stickElement);
     }
@@ -79,14 +81,30 @@ function* generatePuzzle() {
 }
 
 function* generateStick(sum) {
+    var intersection = null;
+    if (sticks.length > 0) {
+        var lastStick = sticks[sticks.length - 1];
+        var intersectionIndex = rand(1, lastStick.length - 1);
+        // intersectionIndex shouldn't be zero because that's the previous intersection
+        intersection = lastStick[intersectionIndex];
+        intersections.add(intersection);
+        console.log(`Selected intersection ${intersection}`);
+    }
+
     var stickLength = rand(STICK_LENGTH_MIN, STICK_LENGTH_MAX);
-    var squareIndex = rand(0, stickLength - 1);
+    var minSquareIndex = isSquare(intersection) ? 0 : 1;
+    var squareIndex = rand(minSquareIndex, stickLength - 2);
+    console.log(`Selected squareIndex ${squareIndex}`);
     var stick = new Array();
     sticks.push(stick);
     yield;
 
     var counter = 0;
     while (stick.length < stickLength) {
+        if (stick.length == 0 && intersection != null) {
+            stick.push(intersection);
+        }
+
         var used = unionValues();
 
         var assignedNumber;
@@ -104,13 +122,13 @@ function* generateStick(sum) {
 
         var isValid = true;
         if (used.has(assignedNumber)) {
-            console.log(`Dropping ${assignedNumber} for reuse`);
+            //console.log(`Dropping ${assignedNumber} for reuse`);
             isValid = false;
         } else if (DISALLOWED.has(assignedNumber)) {
-            console.log(`Dropping ${assignedNumber} for disallowed`);
+            //console.log(`Dropping ${assignedNumber} for disallowed`);
             isValid = false;
         } else if (typeof(assignedNumber) == "number" && (assignedNumber < RANGE_MIN || assignedNumber > RANGE_MAX)) {
-            console.log(`Dropping ${assignedNumber} for range violation`);
+            //console.log(`Dropping ${assignedNumber} for range violation`);
             isValid = false;
         }
 
@@ -135,6 +153,10 @@ function* generateStick(sum) {
         }
         counter = counter + 1;
     }
+}
+
+function isSquare(value) {
+    return value != null && String(value).indexOf('*') >= 0;
 }
 
 function rand(min, max) {
