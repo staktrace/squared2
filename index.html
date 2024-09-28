@@ -17,8 +17,8 @@ span.square {
 }
 </style>
 
-<div id="puzzle">
-</div>
+<div id="puzzle"></div>
+<div id="status"></div>
 <input type="number" id="sum" value="21" style="width: 3em"/>.
 <input type="number" id="crossings" value="3" style="width: 3em"/>
 <button onclick="generateAndRender()">Generate puzzle</button>
@@ -38,6 +38,7 @@ var sticks;
 var intersections;
 
 function generateAndRender() {
+    document.getElementById('status').textContent = 'Working...';
     sticks = new Array();
     intersections = new Set();
 
@@ -47,10 +48,12 @@ function generateAndRender() {
         render();
         if (result.value !== undefined) {
             console.log(result.value);
+            document.getElementById('status').textContent = result.value;
         } else if (!result.done) {
             requestAnimationFrame(nextStep);
         } else {
             finalizePuzzle();
+            document.getElementById('status').textContent = 'Done!';
         }
     }
     nextStep();
