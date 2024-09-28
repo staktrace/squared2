@@ -49,6 +49,8 @@ function generateAndRender() {
             console.log(result.value);
         } else if (!result.done) {
             requestAnimationFrame(nextStep);
+        } else {
+            finalizePuzzle();
         }
     }
     nextStep();
@@ -72,6 +74,10 @@ function render() {
         }
         puzzle.appendChild(stickElement);
     }
+}
+
+function finalizePuzzle() {
+    // TODO
 }
 
 function* generatePuzzle() {
